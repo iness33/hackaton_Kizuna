@@ -1,116 +1,116 @@
 <div align="center">
 
-<img src="public/assets/mieru-mark.svg" alt="Logo Mieru" width="96">
+<img src="public/assets/mieru-mark.svg" alt="Mieru logo" width="96">
 
-# Mieru 見える — le pont Kizuna
+# Mieru 見える — the Kizuna bridge
 
-**Voir chaque maison, pour ne plus plonger tout un quartier dans le noir.**
+**See every home, so a whole neighbourhood never goes dark again.**
 
-Application web progressive (PWA) réalisée en 24 h pendant le **hackathon Kizuna 🇹🇳 × 🇯🇵**.
-Elle lit le compteur électrique des familles tunisiennes, les prévient avant le seuil des 200 kWh, et donne à la STEG une carte maison par maison pour cibler au lieu de couper.
+A progressive web app (PWA) built in 24 hours at the **Kizuna hackathon 🇹🇳 × 🇯🇵**.
+It reads Tunisian households' electricity meters, warns them before the 200 kWh threshold, and gives STEG (the national utility) a home-by-home map so it can target instead of cutting.
 
 `React` · `Vite` · `PWA` · `Supabase` · `Tesseract.js` · `Open-Meteo` · `PVGIS` · FR / EN / AR
 
-### 👉 [Essayer l'application en ligne](https://hackaton-kizuna.vercel.app) · [Espace STEG (démo)](https://hackaton-kizuna.vercel.app/#/steg)
+### 👉 [Try the app online](https://hackaton-kizuna.vercel.app) · [STEG dashboard (demo)](https://hackaton-kizuna.vercel.app/#/steg)
 
 </div>
 
 ---
 
-## Sommaire
+## Contents
 
-1. [Le problème](#le-problème)
-2. [Notre solution](#notre-solution)
-3. [Fonctionnalités](#fonctionnalités)
-4. [La touche japonaise](#la-touche-japonaise)
-5. [Démarrage rapide](#démarrage-rapide)
-6. [Modes de données et Supabase](#modes-de-données-et-supabase)
-7. [Assistant IA Aaddad](#assistant-ia-aaddad)
-8. [Déploiement](#déploiement)
+1. [The problem](#the-problem)
+2. [Our solution](#our-solution)
+3. [Features](#features)
+4. [The Japanese touch](#the-japanese-touch)
+5. [Quick start](#quick-start)
+6. [Data modes and Supabase](#data-modes-and-supabase)
+7. [Aaddad AI assistant](#aaddad-ai-assistant)
+8. [Deployment](#deployment)
 9. [Tests](#tests)
-10. [Structure du projet](#structure-du-projet)
-11. [Confidentialité et cadre légal](#confidentialité-et-cadre-légal)
-12. [Limites connues et suite](#limites-connues-et-suite)
-13. [Équipe](#équipe)
+10. [Project structure](#project-structure)
+11. [Privacy and legal framework](#privacy-and-legal-framework)
+12. [Known limits and next steps](#known-limits-and-next-steps)
+13. [Team](#team)
 
 ---
 
-## Le problème
+## The problem
 
-Été 2026 : pendant la canicule, la STEG a multiplié les coupures tournantes, secteur par secteur, dans tout le Grand Tunis.
+Summer 2026: during the heatwave, STEG carried out rotating power cuts, district by district, across Greater Tunis.
 
-| Chiffre | Source |
+| Figure | Source |
 |---|---|
-| Pointe annoncée à **plus de 6 000 MW** le 21 juillet 2026 (record précédent : 4 888 MW en 2024) | Webdo |
-| Capacité de production d'environ **4 630 MW**, soit **≈ 400 MW manquants** | allAfrica |
-| **2,7 millions** de climatiseurs ; la clim représente 18 % de la consommation des ménages | ANME / STEG |
-| Coût de production **456 millimes/kWh**, prix moyen de vente **291 millimes** | Tuniscope |
-| **85 %** des abonnés consomment moins de 200 kWh par mois | Webdo |
+| Peak demand announced at **over 6,000 MW** on 21 July 2026 (previous record: 4,888 MW in 2024) | Webdo |
+| Production capacity of about **4,630 MW**, i.e. **≈ 400 MW missing** | allAfrica |
+| **2.7 million** air conditioners; AC accounts for 18% of household consumption | ANME / STEG |
+| Production cost **456 millimes/kWh**, average selling price **291 millimes** | Tuniscope |
+| **85%** of customers use less than 200 kWh a month | Webdo |
 
-**Le constat :** la STEG voit des secteurs, pas des maisons. Alors elle coupe des secteurs entiers, y compris les foyers qui économisent et les personnes malades.
+**The insight:** STEG sees districts, not homes. So it cuts whole districts, including households that save energy and people who are ill.
 
-Côté foyer, un deuxième piège : au-delà de **200 kWh par mois, toute la consommation passe au tarif haut** (environ +28 D sur la facture).
+Households face a second trap: above **200 kWh a month, all of their consumption moves to the higher rate** (about +28 TND on the bill).
 
-## Notre solution
+## Our solution
 
-Trois verbes :
+Three verbs:
 
-- **見る Voir.** Le foyer photographie son compteur. Mieru lui dit combien il lui reste avant 200 kWh, et ce que la chaleur va lui coûter.
-- **繋ぐ Relier.** Les relevés remontent à la STEG, qui obtient une carte de chaque secteur et de chaque maison.
-- **守る Protéger.** En cas de surcharge, la STEG limite d'abord les plus gros consommateurs, prévient 15 minutes avant et ne touche jamais aux foyers ayant un équipement médical.
+- **見る See.** The household photographs its meter. Mieru shows how much is left before 200 kWh, and what the heat will cost.
+- **繋ぐ Connect.** Readings flow to STEG, which gets a map of every district and every home.
+- **守る Protect.** When the grid is overloaded, STEG first limits the biggest users, warns them 15 minutes ahead, and never touches homes with medical equipment.
 
-> Dans notre simulation du secteur du Bardo à 105 % de sa capacité : **3 maisons limitées à 2 kVA au lieu de 65 maisons coupées.**
+> In our simulation of the Le Bardo district at 105% of capacity: **3 homes limited to 2 kVA instead of 65 homes cut off.**
 
-## Fonctionnalités
+## Features
 
-### Pour le foyer
+### For households
 
-| Fonction | Description | Fichiers |
+| Feature | Description | Files |
 |---|---|---|
-| Création, invitation, démo | Créer un compteur, rejoindre celui de la famille, ou tester la démo « Maison Ben Salah » | `src/pages/Bienvenue.jsx`, `src/lib/db.js` |
-| Relevé par photo | Photo du compteur, lecture de l'index par OCR, vérification | `src/pages/Releve.jsx`, `src/lib/ocr.js` |
-| Jauge « Pont Kizuna » | Aaddad avance de la porte de Sidi Bou Saïd vers le torii des 200 kWh | `src/components/PontGauge.jsx` |
-| Projection et surcoût | Jour estimé du dépassement, surcoût en dinars | `src/lib/calcul.js` |
-| Graphique du mois | Relevés, projection, seuil | `src/components/Graphique.jsx` |
-| Alerte canicule | Météo des 3 prochains jours (35 °C et plus) et kWh supplémentaires de la clim | `src/lib/meteo.js`, `src/components/Canicule.jsx` |
-| Avis de la STEG | Alerte de surconsommation, limitation ou coupure annoncée, retour du courant | `src/components/AvisSteg.jsx` |
-| Mon solaire | Production, consommation réelle, économies du foyer et de la STEG (PVGIS, ou rendement moyen hors connexion) | `src/components/Photovoltaique.jsx`, `src/lib/pv.js` |
-| Simulateur d'appareils | Ce que coûte chaque appareil | `src/pages/Simulateur.jsx` |
-| Kakeibo | Le bilan japonais du mois : une seule amélioration choisie | `src/pages/Kakeibo.jsx` |
-| Kizuna | Compteur partagé par la famille, en temps réel, avec messages et invitation WhatsApp | `src/pages/Kizuna.jsx` |
-| Réclamation PDF | Photos datées et scellées (EXIF, SHA-256, date serveur) | `src/pages/Reclamation.jsx`, `src/lib/pdf.js`, `src/lib/preuve.js` |
-| Accessibilité | Français, anglais, arabe (de droite à gauche), lecture vocale par Aaddad, grands textes, rappel de relevé après 7 jours | `src/i18n/`, `src/lib/voix.js` |
+| Create, join, demo | Create a meter, join the family's meter, or try the “Ben Salah home” demo | `src/pages/Bienvenue.jsx`, `src/lib/db.js` |
+| Photo reading | Photo of the meter, index read by OCR, validation | `src/pages/Releve.jsx`, `src/lib/ocr.js` |
+| “Kizuna bridge” gauge | Aaddad walks from the Sidi Bou Said door toward the 200 kWh torii | `src/components/PontGauge.jsx` |
+| Forecast and extra cost | Estimated day the threshold is crossed, extra cost in dinars | `src/lib/calcul.js` |
+| Monthly chart | Readings, forecast, threshold | `src/components/Graphique.jsx` |
+| Heatwave alert | 3-day forecast (35 °C and above) and the extra kWh the AC will use | `src/lib/meteo.js`, `src/components/Canicule.jsx` |
+| STEG notices | High-usage alert, announced power limit or cut, power restored | `src/components/AvisSteg.jsx` |
+| My solar | Production, real consumption, savings for the household and for STEG (PVGIS, or average yield when offline) | `src/components/Photovoltaique.jsx`, `src/lib/pv.js` |
+| Appliance simulator | What each appliance costs | `src/pages/Simulateur.jsx` |
+| Kakeibo | The Japanese monthly review: pick one improvement | `src/pages/Kakeibo.jsx` |
+| Kizuna | A meter shared by the family, in real time, with messages and WhatsApp invites | `src/pages/Kizuna.jsx` |
+| PDF complaint | Dated, sealed photos (EXIF, SHA-256, server time) | `src/pages/Reclamation.jsx`, `src/lib/pdf.js`, `src/lib/preuve.js` |
+| Accessibility | French, English, Arabic (right-to-left), read aloud by Aaddad, large text, reminder after 7 days without a reading | `src/i18n/`, `src/lib/voix.js` |
 
-### Pour la STEG (`#/steg`)
+### For STEG (`#/steg`)
 
-| Fonction | Description | Fichiers |
+| Feature | Description | Files |
 |---|---|---|
-| Carte zoomable | Tunisie → gouvernorats → secteurs → maisons, charge de chaque secteur | `src/components/CarteSteg.jsx` |
-| Délestage ciblé | Plan qui limite avant de couper, protège les foyers prioritaires et se compare à la coupure de tout le secteur | `src/lib/reseau.js` (`planDelestage`) |
-| Actions sur une maison | Alerter, limiter à 2 kVA, couper (avec confirmation), rétablir | `src/pages/Steg.jsx` |
-| Solaire | Gain par maison équipée, pour le foyer et pour la STEG | `src/lib/reseau.js` (`gainsSolaire`, `syntheseSolaire`) |
-| Statistiques | Par gouvernorat, par tranche de kWh, chaleur et consommation, foyers en forte hausse | `src/components/StegCharts.jsx`, `src/lib/steg.js` |
-| Scénario | Bouton « Pointe canicule 15 h » pour simuler l'été | `src/pages/Steg.jsx` |
+| Zoomable map | Tunisia → governorates → districts → homes, with the load of each district | `src/components/CarteSteg.jsx` |
+| Targeted load shedding | A plan that limits before cutting, protects priority homes, and compares with cutting the whole district | `src/lib/reseau.js` (`planDelestage`) |
+| Actions on a home | Alert, limit to 2 kVA, cut (with confirmation), restore | `src/pages/Steg.jsx` |
+| Solar | Gain per equipped home, for the household and for STEG | `src/lib/reseau.js` (`gainsSolaire`, `syntheseSolaire`) |
+| Statistics | By governorate, by kWh band, heat versus consumption, homes with sharp rises | `src/components/StegCharts.jsx`, `src/lib/steg.js` |
+| Scenario | “Heatwave peak 3 pm” button to simulate summer | `src/pages/Steg.jsx` |
 
-**Calcul du gain solaire (facturation nette)**
-- Gain du foyer = facture sans panneaux − facture avec panneaux.
-- Gain de la STEG = production × 0,472 D/kWh (coût moyen) − gain du foyer.
+**Solar gain (net billing)**
+- Household gain = bill without panels − bill with panels.
+- STEG gain = production × 0.472 TND/kWh (average cost) − household gain.
 
-## La touche japonaise
+## The Japanese touch
 
-| | Concept | Dans Mieru |
+| | Concept | In Mieru |
 |---|---|---|
-| 見える化 | *Mieruka*, « rendre visible » | Le nom et le principe de l'application |
-| 節電 | *Setsuden*, l'économie d'électricité de 2011 au Japon | Le délestage ciblé et le « Défi Setsuden » entre quartiers |
-| 家計簿 | *Kakeibo*, le carnet de comptes des familles | Le bilan du mois |
-| 絆 | *Kizuna*, le lien | Le compteur partagé en famille, et le pont Tunisie–Japon |
-| 判子 | *Hanko*, le sceau | Les photos scellées de la réclamation |
+| 見える化 | *Mieruka*, “making it visible” | The name and the principle of the app |
+| 節電 | *Setsuden*, Japan's 2011 power-saving effort | Targeted load shedding and the neighbourhood “Setsuden challenge” |
+| 家計簿 | *Kakeibo*, the family budget book | The monthly review |
+| 絆 | *Kizuna*, the bond | The meter shared by the family, and the Tunisia–Japan bridge |
+| 判子 | *Hanko*, the seal | The sealed photos in the complaint |
 
-**Aaddad (عدّاد, « compteur »)** est notre mascotte : un compteur coiffé d'un torii (le seuil des 200 kWh), avec une porte de Sidi Bou Saïd pour ventre et des joues de sakura. Il a trois humeurs : calme, inquiet, joyeux.
+**Aaddad (عدّاد, “meter” in Arabic)** is our mascot: a meter wearing a torii hat (the 200 kWh threshold), with a Sidi Bou Said door for a belly and sakura cheeks. It has three moods: calm, worried, happy.
 
-## Démarrage rapide
+## Quick start
 
-**Prérequis :** Node.js 18 ou plus récent.
+**Requirements:** Node.js 18 or later.
 
 ```bash
 git clone https://github.com/iness33/hackaton_Kizuna.git
@@ -119,60 +119,60 @@ npm install
 npm run dev
 ```
 
-Ouvrir l'adresse affichée (par exemple `http://localhost:5173`).
+Open the address shown (for example `http://localhost:5173`).
 
-- **Sur téléphone :** même Wi-Fi que l'ordinateur, puis l'adresse « Network » affichée par Vite.
-- **Caméra :** elle exige HTTPS ou `localhost`. Pour un HTTPS rapide, rediriger le port 5173 depuis l'onglet **PORTS** de VS Code en visibilité *Public*. Sur téléphone, le bouton de choix de photo ouvre de toute façon l'appareil photo.
-- **Démo :** le bouton « Essayer avec la démo Maison Ben Salah » crée un compteur de 3 membres avec un mois de relevés (168 kWh) et 3 kWc de panneaux solaires.
-- **Espace STEG :** lien « Espace STEG (démo) » sur l'écran d'accueil, ou `#/steg`.
+- **On a phone:** same Wi-Fi as the computer, then the “Network” address shown by Vite.
+- **Camera:** it needs HTTPS or `localhost`. For quick HTTPS, forward port 5173 from the **PORTS** tab in VS Code with *Public* visibility. On a phone, the photo picker opens the camera anyway.
+- **Demo:** the “Try the Ben Salah home demo” button creates a 3-member meter with one month of readings (168 kWh) and 3 kWp of solar panels.
+- **STEG dashboard:** “STEG space (demo)” link on the welcome screen, or `#/steg`.
 
-## Modes de données et Supabase
+## Data modes and Supabase
 
-| Mode | Condition | Fonctionnement |
+| Mode | Condition | How it works |
 |---|---|---|
-| **Local** | Par défaut, sans configuration | Tout fonctionne sur un seul appareil (localStorage et IndexedDB). Kizuna reste limité à cet appareil. |
-| **Cloud** | Fichier `.env.local` rempli | En plus : Kizuna en temps réel entre téléphones, photos stockées sur Supabase, données transmises à l'espace STEG. |
+| **Local** | Default, no setup | Everything runs on a single device (localStorage and IndexedDB). Kizuna stays on that device. |
+| **Cloud** | `.env.local` filled in | Adds real-time Kizuna across phones, photos stored on Supabase, and data sent to the STEG dashboard. |
 
-### Activer Supabase (environ 10 minutes)
+### Enable Supabase (about 10 minutes)
 
-1. Créer un projet gratuit sur [supabase.com](https://supabase.com).
-2. Dans **SQL Editor**, exécuter `supabase/schema.sql` (tables, bucket de photos, temps réel, tables STEG `partages_steg` et `avis_steg`, vue `steg_foyers`).
-3. Dans **Project Settings → API**, copier l'URL du projet et la clé `anon public`.
-4. Copier `.env.example` en `.env.local` et remplir :
+1. Create a free project on [supabase.com](https://supabase.com).
+2. In **SQL Editor**, run `supabase/schema.sql` (tables, photo bucket, real-time, STEG tables `partages_steg` and `avis_steg`, view `steg_foyers`).
+3. In **Project Settings → API**, copy the project URL and the `anon public` key.
+4. Copy `.env.example` to `.env.local` and fill in:
    ```
    VITE_SUPABASE_URL=...
    VITE_SUPABASE_ANON_KEY=...
    ```
-5. Relancer `npm run dev`. Les comptes créés en mode local ne sont pas transférés.
+5. Restart `npm run dev`. Accounts created in local mode are not transferred.
 
-> ⚠️ Pour le hackathon, les règles d'accès sont volontairement simplifiées : toute personne qui connaît l'identifiant d'un compteur peut le lire et y écrire.
+> ⚠️ For the hackathon, access rules are deliberately simplified: anyone who knows a meter's ID can read and write to it.
 
-## Assistant IA Aaddad
+## Aaddad AI assistant
 
-L'assistant passe par une **Supabase Edge Function** qui appelle OpenAI côté serveur. Les relevés du compteur ne sont pas envoyés à OpenAI et les conversations ne sont pas enregistrées. Limite : 20 messages par jour et par adresse réseau.
+The assistant goes through a **Supabase Edge Function** that calls OpenAI server-side. Meter readings are not sent to OpenAI and conversations are not stored. Limit: 20 messages per day per network address.
 
-1. Exécuter `supabase/assistant.sql` dans le SQL Editor.
-2. Installer la Supabase CLI, puis :
+1. Run `supabase/assistant.sql` in the SQL Editor.
+2. Install the Supabase CLI, then:
    ```bash
    supabase link --project-ref <project-ref>
-   supabase secrets set "OPENAI_API_KEY=ta-cle"
+   supabase secrets set "OPENAI_API_KEY=your-key"
    supabase functions deploy aaddad-assistant
    ```
-3. Remplir `.env.local` (URL et clé `anon`), puis relancer l'application.
+3. Fill in `.env.local` (URL and `anon` key), then restart the app.
 
-> 🔒 La clé OpenAI ne doit **jamais** se trouver dans `.env.local`, dans une variable `VITE_*` ni dans le code client.
+> 🔒 The OpenAI key must **never** go in `.env.local`, in a `VITE_*` variable or in client code.
 
-## Déploiement
+## Deployment
 
-L'application est en ligne sur Vercel : **https://hackaton-kizuna.vercel.app** (mode local : les données restent sur l'appareil de chaque visiteur).
+The app is live on Vercel: **https://hackaton-kizuna.vercel.app** (local mode: each visitor's data stays on their own device).
 
-Chaque `git push` sur `main` redéploie automatiquement. Pour refaire un déploiement depuis zéro :
+Every `git push` to `main` redeploys automatically. To deploy from scratch:
 
 ```bash
 npm run build
 ```
 
-Puis sur [vercel.com](https://vercel.com) : **Add New → Project**, importer le dépôt (Vite est détecté automatiquement). Pour le mode cloud, ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans **Settings → Environment Variables**. Vercel fournit le HTTPS nécessaire à la caméra.
+Then on [vercel.com](https://vercel.com): **Add New → Project**, import the repository (Vite is detected automatically). For cloud mode, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` under **Settings → Environment Variables**. Vercel provides the HTTPS the camera needs.
 
 ## Tests
 
@@ -180,68 +180,70 @@ Puis sur [vercel.com](https://vercel.com) : **Add New → Project**, importer le
 npm test
 ```
 
-37 tests (Node.js `node:test`) :
+37 tests (Node.js `node:test`):
 
-- **Calculs** (`calcul.test.js`) : coût mensuel, seuil, projection, vérification des relevés.
-- **Météo** (`meteo.test.js`) : alerte canicule et kWh supplémentaires.
-- **Photovoltaïque** (`pv.test.js`).
-- **Tableau STEG** (`steg.test.js`) : agrégation et règles de confidentialité.
-- **Réseau et délestage** (`reseau.test.js`) : on limite avant de couper, les foyers prioritaires ne sont jamais touchés, une action est annoncée avant et dure 60 minutes au plus, gains solaires.
+- **Calculations** (`calcul.test.js`): monthly cost, threshold, forecast, reading validation.
+- **Weather** (`meteo.test.js`): heatwave alert and extra kWh.
+- **Solar** (`pv.test.js`).
+- **STEG dashboard** (`steg.test.js`): aggregation and privacy rules.
+- **Grid and load shedding** (`reseau.test.js`): limit before cutting, priority homes never touched, every action announced ahead and lasting 60 minutes at most, solar gains.
 
-## Structure du projet
+## Project structure
 
 ```
 hackaton_Kizuna/
-├── public/assets/        # Logo, Aaddad (3 humeurs), pont Kizuna, motifs seigaiha et zellige
+├── public/assets/        # Logo, Aaddad (3 moods), Kizuna bridge, seigaiha and zellige patterns
 ├── src/
 │   ├── pages/            # Bienvenue, Accueil, Releve, Simulateur, Kakeibo, Kizuna, Reclamation, Steg
 │   ├── components/       # PontGauge, Graphique, Canicule, Photovoltaique, AvisSteg,
 │   │                     # ConditionsSteg, PartageSteg, CarteSteg, StegCharts, Chrome, Icon
 │   ├── lib/              # calcul, reseau, steg, pv, meteo, ocr, preuve, pdf, voix, db, store
-│   │   └── tarifs.json   # Grille tarifaire et puissance des appareils
+│   │   └── tarifs.json   # Tariff grid and appliance power ratings
 │   ├── i18n/             # fr.js, en.js, ar.js
-│   └── styles/           # tokens.css (charte), app.css
-├── supabase/             # schema.sql, assistant.sql, fonction Edge aaddad-assistant
+│   └── styles/           # tokens.css (brand), app.css
+├── supabase/             # schema.sql, assistant.sql, aaddad-assistant Edge Function
 ├── .env.example
 ├── index.html
 ├── package.json
 └── vite.config.js        # PWA (manifest, service worker)
 ```
 
-## Confidentialité et cadre légal
+File and folder names are in French, the team's working language.
 
-- **Partage avec la STEG :** condition d'utilisation, acceptée une fois par compteur sur l'écran « Avant de commencer ». Le foyer voit à tout moment ce que la STEG voit (Kizuna → « Ce que la STEG voit »).
-- **Jamais transmis :** prénoms des membres, photos, messages Kizuna, kakeibo.
-- **Foyers prioritaires :** un foyer qui déclare un équipement médical n'est jamais limité ni coupé.
-- **Délestage :** toujours annoncé 15 minutes avant, 60 minutes au plus, limitation à 2 kVA avant toute coupure.
-- **Base légale visée :** convention entre le foyer et la STEG (loi organique n° 2004-63, art. 29), avec déclaration préalable à l'INPDP avant tout déploiement réel.
-- **Données de démo :** les 1 226 maisons de la carte, leurs positions et leurs charges sont **simulées**. Les vrais foyers Mieru sont marqués « Foyer Mieru ».
+## Privacy and legal framework
 
-## Limites connues et suite
+- **Sharing with STEG:** a condition of use, accepted once per meter on the “Before you start” screen. Households can always see what STEG sees (Kizuna → “What STEG sees”).
+- **Never sent:** members' first names, photos, Kizuna messages, kakeibo.
+- **Priority homes:** a household that declares medical equipment is never limited or cut.
+- **Load shedding:** always announced 15 minutes ahead, 60 minutes at most, limited to 2 kVA before any cut.
+- **Intended legal basis:** an agreement between the household and STEG (Tunisian Organic Law No. 2004-63, art. 29), with prior declaration to INPDP, the data protection authority, before any real roll-out.
+- **Demo data:** the 1,226 homes on the map, their positions and their loads are **simulated**. Real Mieru households are marked “Mieru household”.
 
-- Vérifier la grille tarifaire (`src/lib/tarifs.json`) sur une vraie facture STEG.
-- Tester l'OCR sur de vraies photos de compteurs et ajuster le cadre (`src/lib/ocr.js`, `.camera .frame` dans `app.css`).
-- La partie cloud de l'espace STEG n'a pas encore été testée sur un vrai projet Supabase.
-- Une limitation ou une coupure **à distance** nécessite des compteurs communicants. Sans eux, Mieru alerte et la STEG agit sur le terrain.
-- À venir : notifications push, QR code d'invitation Kizuna, pilote dans un secteur avec la STEG.
-- `src/lib/i18n.js` et `src/components/Courbe.jsx` sont obsolètes et peuvent être supprimés.
+## Known limits and next steps
 
-## Équipe
+- Check the tariff grid (`src/lib/tarifs.json`) against a real STEG bill.
+- Test OCR on real meter photos and adjust the frame (`src/lib/ocr.js`, `.camera .frame` in `app.css`).
+- The cloud part of the STEG dashboard has not yet been tested against a real Supabase project.
+- Limiting or cutting **remotely** requires smart meters. Without them, Mieru alerts and STEG acts on the ground.
+- Coming next: push notifications, Kizuna invite QR code, a one-district pilot with STEG.
+- `src/lib/i18n.js` and `src/components/Courbe.jsx` are obsolete and can be deleted.
 
-Projet réalisé pendant le hackathon Kizuna (Tunisie × Japon).
+## Team
 
-| Rôle | Membre | Périmètre |
+Built during the Kizuna hackathon (Tunisia × Japan).
+
+| Role | Member | Scope |
 |---|---|---|
-| M1 · Front | [Yesmine Dhouib] | `src/pages/*`, `src/components/*`, `src/styles/*` |
-| M2 · Back, calculs, Kizuna | [ines.sefi] | `src/lib/calcul.js`, `src/lib/db.js`, `src/lib/store.jsx`, `supabase/` |
-| M3 · OCR, preuves, PDF, pitch | [tasnim elmehrabi] | `src/lib/ocr.js`, `src/lib/preuve.js`, `src/lib/pdf.js` |
+| M1 · Front end | [Yesmine Dhouib] | `src/pages/*`, `src/components/*`, `src/styles/*` |
+| M2 · Back end, calculations, Kizuna | [ines.sefi] | `src/lib/calcul.js`, `src/lib/db.js`, `src/lib/store.jsx`, `supabase/` |
+| M3 · OCR, evidence, PDF, pitch | [tasnim elmehrabi] | `src/lib/ocr.js`, `src/lib/preuve.js`, `src/lib/pdf.js` |
 
 ---
 
 <div align="center">
 
-**Mieru 見える : voir, pour ne plus couper.**
+**Mieru 見える: see, so we never have to cut.**
 
-ありがとう · شكرا · Merci
+ありがとう · شكرا · Thank you
 
 </div>
