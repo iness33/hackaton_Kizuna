@@ -88,7 +88,7 @@ export default function Steg() {
   const nom = (id) => nomVille(VILLES.find((v) => v.id === id) || { nom: id, nomAr: id }, lang);
   const pct = (x) => `${nombre(x * 100, 0)} %`;
   const heure = (d) => new Date(d).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
-  const dinars = (x) => `${nombre(x, x >= 100 ? 0 : 2)} D`;
+  const dinars = (x) => `${nombre(x, x >= 100 ? 0 : 2)} ${t('sim.currency')}`;
 
   const selFoyer = selection?.type === 'foyer' ? reseau.foyers.find((f) => f.id === selection.id) : null;
   const selSecteur = selection?.type === 'secteur' ? etats.find((s) => s.id === selection.id) : selFoyer ? etats.find((s) => s.id === selFoyer.secteur) : null;
@@ -387,13 +387,6 @@ export default function Steg() {
           </section>
         </>}
 
-        <section className="card tone-fete" style={{ border: 0 }}>
-          <h2 className="heading">{t('steg.rules2')}</h2>
-          <ul className="small" style={{ margin: '8px 0 0', paddingInlineStart: 20, display: 'grid', gap: 4 }}>
-            {['g1', 'g2', 'g3', 'g4', 'g5', 'g6'].map((r) => <li key={r}>{t(`steg.${r}`, { kva: LIMITE_KVA, min: DUREE_MAX_MIN, pre: PREAVIS_MIN })}</li>)}
-          </ul>
-          <p className="small muted" style={{ marginTop: 8 }}>{t('steg.demoData', { d: date(new Date(), { day: 'numeric', month: 'long', year: 'numeric' }) })}</p>
-        </section>
       </main>
     </div>
   );

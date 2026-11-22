@@ -11,9 +11,16 @@ export default function Simulateur() {
   const { etat, tarifs } = useCompteur();
   const { t, nombre, duree } = useT();
   const [machines, setMachines] = useState([]);
+  const [appareilsPerso, setAppareilsPerso] = useState([]);
+  const [formulaireAutre, setFormulaireAutre] = useState(false);
+  const [nomAutre, setNomAutre] = useState('');
+  const [kwhParHeureAutre, setKwhParHeureAutre] = useState('');
+  const [erreurAutre, setErreurAutre] = useState('');
+  const appareils = [...tarifs.appareils, ...appareilsPerso];
+  const nomAppareil = (appareil) => appareil.personnalise ? appareil.nom : t(`app.${appareil.id}`);
   const scenario = projectionAppareils(
     machines.map((machine) => ({
-      appareil: tarifs.appareils.find((a) => a.id === machine.appareilId),
+      appareil: appareils.find((a) => a.id === machine.appareilId),
       quantite: machine.quantite,
     })),
     etat,
@@ -34,6 +41,23 @@ export default function Simulateur() {
         ? { ...machine, quantite: Math.max(0, Math.min(24, Math.round((machine.quantite + variation) * 10) / 10)) }
         : machine
     )));
+  };
+  const ajouterAutreAppareil = (ev) => {
+    ev.preventDefault();
+    const nom = nomAutre.trim();
+    const kw = Number(kwhParHeureAutre);
+    if (!nom || !Number.isFinite(kw) || kw <= 0) {
+      setErreurAutre(t('sim.otherInvalid'));
+      return;
+    }
+
+    const appareil = { id: `perso-${Date.now()}`, nom, kw, unite: 'h', pas: 0.5, personnalise: true };
+    setAppareilsPerso((actuels) => [...actuels, appareil]);
+    setMachines((actuelles) => [...actuelles, { appareilId: appareil.id, quantite: 1 }]);
+    setNomAutre('');
+    setKwhParHeureAutre('');
+    setErreurAutre('');
+    setFormulaireAutre(false);
   };
 
   return (
@@ -65,33 +89,55 @@ export default function Simulateur() {
           <p className="small muted">{t('sim.scenarioHint')}</p>
         </section>
         <div className="grid2" role="group" aria-label={t('sim.appliance')}>
-          {tarifs.appareils.map((a) => (
+          {appareils.map((a) => (
             <button key={a.id} type="button" aria-pressed={machines.some((machine) => machine.appareilId === a.id)}
               className={`radio-row${machines.some((machine) => machine.appareilId === a.id) ? ' on' : ''}`}
               style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '10px 12px', minHeight: 64, textAlign: 'start' }}
               onClick={() => basculerAppareil(a)}>
-              <span style={{ fontWeight: 600, fontSize: 15 }}>{t(`app.${a.id}`)}</span>
+              <span style={{ fontWeight: 600, fontSize: 15 }}>{nomAppareil(a)}</span>
               <span className="small muted">{t(a.unite === 'h' ? 'sim.perHour' : 'sim.perCycle', { kw: nombre(a.kw, 2) })}</span>
             </button>
           ))}
+          <button type="button" aria-expanded={formulaireAutre} aria-controls="sim-autre-form"
+            className={`radio-row${formulaireAutre ? ' on' : ''}`}
+            style={{ flexDirection: 'column', alignItems: 'flex-start', gap: 2, padding: '10px 12px', minHeight: 64, textAlign: 'start' }}
+            onClick={() => { setFormulaireAutre(!formulaireAutre); setErreurAutre(''); }}>
+            <span style={{ fontWeight: 600, fontSize: 15 }}>{t('sim.other')}</span>
+            <span className="small muted">{t('sim.otherHint')}</span>
+          </button>
         </div>
+        {formulaireAutre && (
+          <form id="sim-autre-form" className="card" onSubmit={ajouterAutreAppareil}
+            style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <label className="small" htmlFor="sim-autre-nom">{t('sim.otherName')}
+              <input id="sim-autre-nom" className="input" type="text" maxLength="60" required
+                value={nomAutre} onChange={(ev) => { setNomAutre(ev.target.value); setErreurAutre(''); }} />
+            </label>
+            <label className="small" htmlFor="sim-autre-kwh">{t('sim.otherKwh')}
+              <input id="sim-autre-kwh" className="input" type="number" inputMode="decimal" min="0.01" step="0.01" required
+                value={kwhParHeureAutre} onChange={(ev) => { setKwhParHeureAutre(ev.target.value); setErreurAutre(''); }} />
+            </label>
+            {erreurAutre && <p className="small" role="alert">{erreurAutre}</p>}
+            <button type="submit" className="btn btn-primary">{t('sim.otherAdd')}</button>
+          </form>
+        )}
         {machines.length > 0 && (
           <section className="card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <h2 className="heading">{t('sim.selectedTitle')}</h2>
             {machines.map((machine) => {
-              const appareil = tarifs.appareils.find((a) => a.id === machine.appareilId);
+              const appareil = appareils.find((a) => a.id === machine.appareilId);
               const horaire = appareil.unite === 'h';
               return (
                 <div key={machine.appareilId} className="row" style={{ justifyContent: 'space-between' }}>
-                  <span style={{ fontWeight: 600 }}>{t(`app.${appareil.id}`)}</span>
+                  <span style={{ fontWeight: 600 }}>{nomAppareil(appareil)}</span>
                   <div className="row">
-                    <button className="chip" aria-label={t('sim.minusAppliance', { name: t(`app.${appareil.id}`) })}
+                    <button className="chip" aria-label={t('sim.minusAppliance', { name: nomAppareil(appareil) })}
                       disabled={machine.quantite === 0} style={{ width: 44, height: 44 }}
                       onClick={() => ajusterQuantite(appareil, -appareil.pas)}>−</button>
                     <span style={{ minWidth: 64, textAlign: 'center', font: '800 20px/28px var(--font-display)' }}>
                       {duree(machine.quantite, horaire ? 'h' : 'lessive')}
                     </span>
-                    <button className="chip" aria-label={t('sim.plusAppliance', { name: t(`app.${appareil.id}`) })}
+                    <button className="chip" aria-label={t('sim.plusAppliance', { name: nomAppareil(appareil) })}
                       disabled={machine.quantite === 24} style={{ width: 44, height: 44 }}
                       onClick={() => ajusterQuantite(appareil, appareil.pas)}>+</button>
                   </div>

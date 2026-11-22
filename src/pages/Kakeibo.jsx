@@ -78,6 +78,14 @@ export default function Kakeibo() {
     }, t('kak.customSaved'));
     setObjectifPersonnalise('');
   };
+  const choisirAction = (action) => (
+    <button key={action} type="button" aria-pressed={objectifChoisi === action}
+      className={`radio-row${objectifChoisi === action ? ' on' : ''}`}
+      style={{ minHeight: 56, textAlign: 'start' }}
+      onClick={() => setObjectifChoisi(objectifChoisi === action ? null : action)}>
+      {t(`am.${action}`)}
+    </button>
+  );
   const atteint = etat.projection <= k.objectifKwh;
   const reductionDemandee = Math.max(0, etat.projection - k.objectifKwh);
   const personnaliseExiste = objectifPersonnalise.trim().length > 0 && (
@@ -133,22 +141,25 @@ export default function Kakeibo() {
             })}</b></p>
           )}
           {evenements.includes('appareil') && <p className="small muted">{t('kak.newApplianceHint')}</p>}
-          <label className="field">
-            <span>{t('kak.actionChoose')}</span>
-            <select className="input" value={objectifChoisi || ''} onChange={(ev) => setObjectifChoisi(ev.target.value || null)}>
-              <option value="">{t('kak.actionPlaceholder')}</option>
-              {actionsRecommandees.length > 0 ? (
-                <>
-                  <optgroup label={t('kak.recommendedActions')}>
-                    {actionsRecommandees.map((a) => <option key={a} value={a}>{t(`am.${a}`)}</option>)}
-                  </optgroup>
-                  {autresActions.length > 0 && <optgroup label={t('kak.otherActions')}>
-                    {autresActions.map((a) => <option key={a} value={a}>{t(`am.${a}`)}</option>)}
-                  </optgroup>}
-                </>
-              ) : AMELIORATIONS.map((a) => <option key={a} value={a}>{t(`am.${a}`)}</option>)}
-            </select>
-          </label>
+          <p className="small">{t('kak.actionChoose')}</p>
+          {actionsRecommandees.length > 0 ? (
+            <>
+              <h3 className="heading">{t('kak.recommendedActions')}</h3>
+              <div className="grid2" role="group" aria-label={t('kak.recommendedActions')}>
+                {actionsRecommandees.map(choisirAction)}
+              </div>
+              {autresActions.length > 0 && <>
+                <h3 className="heading">{t('kak.otherActions')}</h3>
+                <div className="grid2" role="group" aria-label={t('kak.otherActions')}>
+                  {autresActions.map(choisirAction)}
+                </div>
+              </>}
+            </>
+          ) : (
+            <div className="grid2" role="group" aria-label={t('kak.actionChoose')}>
+              {AMELIORATIONS.map(choisirAction)}
+            </div>
+          )}
           <button className="btn btn-primary" onClick={ajouterObjectif} disabled={!objectifChoisi || objectifs.includes(objectifChoisi)}>
             {t('kak.addObjective')}
           </button>

@@ -48,6 +48,16 @@ function chargerImage(source) {
   });
 }
 
+export function choisirLecture(essais) {
+  const bons = essais
+    .filter((e) => /^\d{4,6}$/.test(e.texte))
+    .sort((a, b) => b.confiance - a.confiance);
+  const meilleur = bons[0];
+  return meilleur
+    ? { valeur: Number(meilleur.texte), texte: meilleur.texte, confiance: meilleur.confiance }
+    : { valeur: null, texte: '', confiance: 0 };
+}
+
 /** Lit l'index sur la photo. Renvoie { valeur: 4821 | null, texte: '04821', confiance: 0–100 }. */
 export async function lireIndex(imageBlob) {
   const w = await worker();
@@ -57,8 +67,5 @@ export async function lireIndex(imageBlob) {
     const chiffres = (data.text || '').replace(/\D/g, '');
     essais.push({ texte: chiffres, confiance: Math.round(data.confidence || 0) });
   }
-  // On garde la lecture la plus plausible : 4 à 6 chiffres, meilleure confiance.
-  const bons = essais.filter((e) => e.texte.length >= 4 && e.texte.length <= 6).sort((a, b) => b.confiance - a.confiance);
-  const meilleur = bons[0] || essais.sort((a, b) => b.confiance - a.confiance)[0];
-  return { valeur: meilleur.texte ? Number(meilleur.texte) : null, texte: meilleur.texte, confiance: meilleur.confiance };
+  return choisirLecture(essais);
 }

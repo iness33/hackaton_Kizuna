@@ -7,7 +7,7 @@ import { calculerEtat, coutMensuel, surcout, verifierReleve, coutAppareil, proje
 const tarifs = JSON.parse(readFileSync(new URL('./tarifs.json', import.meta.url)));
 const compteur = { id: 'c1', indexDepart: 4600, creeLe: '2026-10-01T08:00:00', seuil: 200 };
 
-test("l'effet de seuil : le 201e kWh coûte environ 28 D", () => {
+test("l'effet de seuil : le 201e kWh coûte environ 28 TND", () => {
   assert.equal(coutMensuel(200, tarifs), 49.2);
   assert.equal(coutMensuel(201, tarifs), 77.61);
   assert.ok(Math.abs(coutMensuel(201, tarifs) - coutMensuel(200, tarifs) - 28.4) < 0.1);

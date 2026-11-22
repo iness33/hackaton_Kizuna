@@ -40,6 +40,7 @@ export default function Releve() {
       const r = await lireIndex(p.blob);
       setLecture(r);
       if (r.valeur !== null) setIndex(String(r.valeur));
+      else signaler(t('read.ocrFail'));
     } catch {
       setLecture({ valeur: null, confiance: 0 });
       signaler(t('read.ocrFail'));

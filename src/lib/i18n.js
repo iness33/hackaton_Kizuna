@@ -19,7 +19,7 @@ const TEXTES = {
     toriiApproche: 'Le torii approche',
     passeSeuilDans: (n) => `Au rythme actuel, tu passes le seuil dans ${n} jour${n > 1 ? 's' : ''}`,
     toutPres: 'Tu es tout près du seuil',
-    surcout: (n) => ` : environ ${n} D de plus.`,
+    surcout: (n) => ` : environ ${n} TND de plus.`,
     eviter: "Voir comment l'éviter →",
     depasseTexte: 'Ce mois-ci, toute ta consommation passe au tarif supérieur. Le mois prochain, on prépare la traversée ensemble avec ton bilan Kakeibo.',
     chaleur: (n) => `Chaleur annoncée : ${n} °C`,

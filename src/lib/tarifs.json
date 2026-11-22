@@ -1,5 +1,5 @@
 {
-  "_attention": "VALEURS À VÉRIFIER sur une vraie facture STEG avant la démo. Modèle simplifié calé sur l'exemple publié par Webdo (réforme de mai 2022) : 200 kWh/mois ≈ 49,2 D ; 201 kWh/mois ≈ 77,6 D (frais compris). Remplacer par la grille officielle si l'équipe l'obtient.",
+  "_attention": "VALEURS À VÉRIFIER sur une vraie facture STEG avant la démo. Modèle simplifié calé sur l'exemple publié par Webdo (réforme de mai 2022) : 200 kWh/mois ≈ 49,2 TND ; 201 kWh/mois ≈ 77,6 TND (frais compris). Remplacer par la grille officielle si l'équipe l'obtient.",
   "source": "https://www.webdo.tn/fr/actualite/national/comment-reduire-sa-facture-delectricite/132385/",
   "seuilMensuelKwh": 200,
   "regimes": [
@@ -8,14 +8,14 @@
       "nom": "Consommation jusqu'à 200 kWh/mois",
       "maxKwhMois": 200,
       "prixMoyenDinarsParKwh": 0.246,
-      "note": "Prix moyen tout compris : 49,2 D / 200 kWh."
+      "note": "Prix moyen tout compris : 49,2 TND / 200 kWh."
     },
     {
       "id": "au-dessus",
       "nom": "Consommation au-delà de 200 kWh/mois",
       "maxKwhMois": null,
       "prixMoyenDinarsParKwh": 0.3861,
-      "note": "Toute la consommation passe au tarif supérieur : 77,6 D / 201 kWh."
+      "note": "Toute la consommation passe au tarif supérieur : 77,6 TND / 201 kWh."
     }
   ],
   "appareils": [

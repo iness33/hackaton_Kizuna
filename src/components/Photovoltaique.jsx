@@ -75,9 +75,9 @@ export default function Photovoltaique({ importReseauKwh, className = '' }) {
   const formulaire = (
     <form onSubmit={enregistrer} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
       <div className="grid2">
-        <label className="field"><span className="caption">{t('pv.capacity')}</span>
+        <label className="field"><span className="caption" style={{ minHeight: 48 }}>{t('pv.capacity')}</span>
           <input className="input" inputMode="decimal" value={puissance} onChange={(e) => setPuissance(e.target.value)} placeholder={t('pv.capacityPlaceholder')} required /></label>
-        <label className="field"><span className="caption">{t('solar.injInput')}</span>
+        <label className="field"><span className="caption" style={{ minHeight: 48 }}>{t('solar.injInput')}</span>
           <input className="input" inputMode="decimal" value={injection} onChange={(e) => setInjection(e.target.value)} placeholder={t('pv.exportPlaceholder')} /></label>
       </div>
       <p className="small muted">{t('solar.injHelp')}</p>
@@ -129,8 +129,8 @@ export default function Photovoltaique({ importReseauKwh, className = '' }) {
       </div>
 
       <div className="grid2">
-        <div className="alert tone-ok" style={{ flexDirection: 'column', gap: 2 }}><span className="caption">{t('solar.youSave')}</span><b style={{ font: '800 22px/28px var(--font-display)' }}>{nombre(g.gainFoyer, 1)} D</b><span className="small">{t('solar.youSaveSub', { avec: nombre(g.factureAvec, 1), sans: nombre(g.factureSans, 1) })}</span></div>
-        <div className="alert tone-info" style={{ flexDirection: 'column', gap: 2 }}><span className="caption">{t('solar.stegSaves')}</span><b style={{ font: '800 22px/28px var(--font-display)' }}>{nombre(g.gainSteg, 1)} D</b><span className="small">{t('solar.stegSavesSub', { cout: nombre(COUT_REVIENT, 3) })}</span></div>
+        <div className="alert tone-ok" style={{ flexDirection: 'column', gap: 2 }}><span className="caption">{t('solar.youSave')}</span><b style={{ font: '800 22px/28px var(--font-display)' }}>{nombre(g.gainFoyer, 1)} {t('sim.currency')}</b><span className="small">{t('solar.youSaveSub', { avec: nombre(g.factureAvec, 1), sans: nombre(g.factureSans, 1) })}</span></div>
+        <div className="alert tone-info" style={{ flexDirection: 'column', gap: 2 }}><span className="caption">{t('solar.stegSaves')}</span><b style={{ font: '800 22px/28px var(--font-display)' }}>{nombre(g.gainSteg, 1)} {t('sim.currency')}</b><span className="small">{t('solar.stegSavesSub', { cout: nombre(COUT_REVIENT, 3) })}</span></div>
       </div>
       {g.sousSeuilGraceAuSolaire && <p className="alert tone-ok small">{t('solar.underThanks')}</p>}
 

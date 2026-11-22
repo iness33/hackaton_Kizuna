@@ -51,7 +51,7 @@ export async function genererReclamation({ compteur, releves, facture, kwhReel, 
     headStyles: { fillColor: AI, textColor: 255 }, styles: { fontSize: 10, textColor: SUMI },
     head: [['', 'Consommation (kWh)', 'Montant']],
     body: [
-      [`Facture estimée (${facture.periode || 'période indiquée'})`, String(facture.kwhFacture ?? '—'), facture.montant ? `${facture.montant} D` : '—'],
+      [`Facture estimée (${facture.periode || 'période indiquée'})`, String(facture.kwhFacture ?? '—'), facture.montant ? `${facture.montant} TND` : '—'],
       ['Consommation réelle d\'après les relevés ci-dessous', String(kwhReel), ''],
       ['Écart', String((facture.kwhFacture ?? 0) - kwhReel), ''],
     ],

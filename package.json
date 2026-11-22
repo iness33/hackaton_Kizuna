@@ -8,7 +8,7 @@
     "dev": "vite --host",
     "build": "vite build",
     "preview": "vite preview --host",
-    "test": "node --test src/lib/calcul.test.js src/lib/meteo.test.js src/lib/steg.test.js src/lib/pv.test.js src/lib/reseau.test.js"
+    "test": "node --test src/lib/calcul.test.js src/lib/meteo.test.js src/lib/steg.test.js src/lib/pv.test.js src/lib/reseau.test.js src/lib/ocr.test.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.45.4",

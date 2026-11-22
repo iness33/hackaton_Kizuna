@@ -9,7 +9,7 @@
 import { coutMensuel } from './calcul.js';
 import { VILLES } from './meteo.js';
 
-export const COUT_REVIENT = 0.472;   // D/kWh : coût moyen de l'électricité (ministère de l'Industrie, audition 2025)
+export const COUT_REVIENT = 0.472;   // TND/kWh : coût moyen de l'électricité (ministère de l'Industrie, audition 2025)
 export const LIMITE_KVA = 2;         // puissance laissée à un foyer limité
 export const DUREE_MAX_MIN = 60;     // durée maximale d'une coupure ciblée
 export const PREAVIS_MIN = 15;       // délai entre l'annonce et l'action
