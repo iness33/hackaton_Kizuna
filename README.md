@@ -1,151 +1,247 @@
-# Mieru (見える) — le pont Kizuna
+<div align="center">
 
-Application web progressive (PWA) du hackathon Kizuna : elle lit le compteur électrique des familles tunisiennes et leur montre, avant la facture, à quelle distance elles sont du seuil des 200 kWh. Charte : estampe japonaise × Sidi Bou Saïd, mascotte **Aaddad** (le compteur vivant).
+<img src="public/assets/mieru-mark.svg" alt="Logo Mieru" width="96">
 
-## Démarrer en 3 minutes
+# Mieru 見える — le pont Kizuna
 
-Prérequis : Node.js 18 ou plus récent.
+**Voir chaque maison, pour ne plus plonger tout un quartier dans le noir.**
+
+Application web progressive (PWA) réalisée en 24 h pendant le **hackathon Kizuna 🇹🇳 × 🇯🇵**.
+Elle lit le compteur électrique des familles tunisiennes, les prévient avant le seuil des 200 kWh, et donne à la STEG une carte maison par maison pour cibler au lieu de couper.
+
+`React` · `Vite` · `PWA` · `Supabase` · `Tesseract.js` · `Open-Meteo` · `PVGIS` · FR / EN / AR
+
+### 👉 [Essayer l'application en ligne](https://hackaton-kizuna.vercel.app) · [Espace STEG (démo)](https://hackaton-kizuna.vercel.app/#/steg)
+
+</div>
+
+---
+
+## Sommaire
+
+1. [Le problème](#le-problème)
+2. [Notre solution](#notre-solution)
+3. [Fonctionnalités](#fonctionnalités)
+4. [La touche japonaise](#la-touche-japonaise)
+5. [Démarrage rapide](#démarrage-rapide)
+6. [Modes de données et Supabase](#modes-de-données-et-supabase)
+7. [Assistant IA Aaddad](#assistant-ia-aaddad)
+8. [Déploiement](#déploiement)
+9. [Tests](#tests)
+10. [Structure du projet](#structure-du-projet)
+11. [Confidentialité et cadre légal](#confidentialité-et-cadre-légal)
+12. [Limites connues et suite](#limites-connues-et-suite)
+13. [Équipe](#équipe)
+
+---
+
+## Le problème
+
+Été 2026 : pendant la canicule, la STEG a multiplié les coupures tournantes, secteur par secteur, dans tout le Grand Tunis.
+
+| Chiffre | Source |
+|---|---|
+| Pointe annoncée à **plus de 6 000 MW** le 21 juillet 2026 (record précédent : 4 888 MW en 2024) | Webdo |
+| Capacité de production d'environ **4 630 MW**, soit **≈ 400 MW manquants** | allAfrica |
+| **2,7 millions** de climatiseurs ; la clim représente 18 % de la consommation des ménages | ANME / STEG |
+| Coût de production **456 millimes/kWh**, prix moyen de vente **291 millimes** | Tuniscope |
+| **85 %** des abonnés consomment moins de 200 kWh par mois | Webdo |
+
+**Le constat :** la STEG voit des secteurs, pas des maisons. Alors elle coupe des secteurs entiers, y compris les foyers qui économisent et les personnes malades.
+
+Côté foyer, un deuxième piège : au-delà de **200 kWh par mois, toute la consommation passe au tarif haut** (environ +28 D sur la facture).
+
+## Notre solution
+
+Trois verbes :
+
+- **見る Voir.** Le foyer photographie son compteur. Mieru lui dit combien il lui reste avant 200 kWh, et ce que la chaleur va lui coûter.
+- **繋ぐ Relier.** Les relevés remontent à la STEG, qui obtient une carte de chaque secteur et de chaque maison.
+- **守る Protéger.** En cas de surcharge, la STEG limite d'abord les plus gros consommateurs, prévient 15 minutes avant et ne touche jamais aux foyers ayant un équipement médical.
+
+> Dans notre simulation du secteur du Bardo à 105 % de sa capacité : **3 maisons limitées à 2 kVA au lieu de 65 maisons coupées.**
+
+## Fonctionnalités
+
+### Pour le foyer
+
+| Fonction | Description | Fichiers |
+|---|---|---|
+| Création, invitation, démo | Créer un compteur, rejoindre celui de la famille, ou tester la démo « Maison Ben Salah » | `src/pages/Bienvenue.jsx`, `src/lib/db.js` |
+| Relevé par photo | Photo du compteur, lecture de l'index par OCR, vérification | `src/pages/Releve.jsx`, `src/lib/ocr.js` |
+| Jauge « Pont Kizuna » | Aaddad avance de la porte de Sidi Bou Saïd vers le torii des 200 kWh | `src/components/PontGauge.jsx` |
+| Projection et surcoût | Jour estimé du dépassement, surcoût en dinars | `src/lib/calcul.js` |
+| Graphique du mois | Relevés, projection, seuil | `src/components/Graphique.jsx` |
+| Alerte canicule | Météo des 3 prochains jours (35 °C et plus) et kWh supplémentaires de la clim | `src/lib/meteo.js`, `src/components/Canicule.jsx` |
+| Avis de la STEG | Alerte de surconsommation, limitation ou coupure annoncée, retour du courant | `src/components/AvisSteg.jsx` |
+| Mon solaire | Production, consommation réelle, économies du foyer et de la STEG (PVGIS, ou rendement moyen hors connexion) | `src/components/Photovoltaique.jsx`, `src/lib/pv.js` |
+| Simulateur d'appareils | Ce que coûte chaque appareil | `src/pages/Simulateur.jsx` |
+| Kakeibo | Le bilan japonais du mois : une seule amélioration choisie | `src/pages/Kakeibo.jsx` |
+| Kizuna | Compteur partagé par la famille, en temps réel, avec messages et invitation WhatsApp | `src/pages/Kizuna.jsx` |
+| Réclamation PDF | Photos datées et scellées (EXIF, SHA-256, date serveur) | `src/pages/Reclamation.jsx`, `src/lib/pdf.js`, `src/lib/preuve.js` |
+| Accessibilité | Français, anglais, arabe (de droite à gauche), lecture vocale par Aaddad, grands textes, rappel de relevé après 7 jours | `src/i18n/`, `src/lib/voix.js` |
+
+### Pour la STEG (`#/steg`)
+
+| Fonction | Description | Fichiers |
+|---|---|---|
+| Carte zoomable | Tunisie → gouvernorats → secteurs → maisons, charge de chaque secteur | `src/components/CarteSteg.jsx` |
+| Délestage ciblé | Plan qui limite avant de couper, protège les foyers prioritaires et se compare à la coupure de tout le secteur | `src/lib/reseau.js` (`planDelestage`) |
+| Actions sur une maison | Alerter, limiter à 2 kVA, couper (avec confirmation), rétablir | `src/pages/Steg.jsx` |
+| Solaire | Gain par maison équipée, pour le foyer et pour la STEG | `src/lib/reseau.js` (`gainsSolaire`, `syntheseSolaire`) |
+| Statistiques | Par gouvernorat, par tranche de kWh, chaleur et consommation, foyers en forte hausse | `src/components/StegCharts.jsx`, `src/lib/steg.js` |
+| Scénario | Bouton « Pointe canicule 15 h » pour simuler l'été | `src/pages/Steg.jsx` |
+
+**Calcul du gain solaire (facturation nette)**
+- Gain du foyer = facture sans panneaux − facture avec panneaux.
+- Gain de la STEG = production × 0,472 D/kWh (coût moyen) − gain du foyer.
+
+## La touche japonaise
+
+| | Concept | Dans Mieru |
+|---|---|---|
+| 見える化 | *Mieruka*, « rendre visible » | Le nom et le principe de l'application |
+| 節電 | *Setsuden*, l'économie d'électricité de 2011 au Japon | Le délestage ciblé et le « Défi Setsuden » entre quartiers |
+| 家計簿 | *Kakeibo*, le carnet de comptes des familles | Le bilan du mois |
+| 絆 | *Kizuna*, le lien | Le compteur partagé en famille, et le pont Tunisie–Japon |
+| 判子 | *Hanko*, le sceau | Les photos scellées de la réclamation |
+
+**Aaddad (عدّاد, « compteur »)** est notre mascotte : un compteur coiffé d'un torii (le seuil des 200 kWh), avec une porte de Sidi Bou Saïd pour ventre et des joues de sakura. Il a trois humeurs : calme, inquiet, joyeux.
+
+## Démarrage rapide
+
+**Prérequis :** Node.js 18 ou plus récent.
 
 ```bash
+git clone https://github.com/iness33/hackaton_Kizuna.git
+cd hackaton_Kizuna
 npm install
 npm run dev
 ```
 
-Ouvre l'adresse affichée (par exemple `http://localhost:5173`). Pour tester sur ton téléphone, il doit être sur le même Wi-Fi : utilise l'adresse « Network » affichée par Vite.
+Ouvrir l'adresse affichée (par exemple `http://localhost:5173`).
 
-> La caméra du navigateur ne fonctionne qu'en **HTTPS** ou sur `localhost`. Pour un HTTPS rapide : onglet **PORTS** de VS Code → Forward a Port `5173` → visibilité **Public** (déjà autorisé dans `vite.config.js`). Sur le téléphone via l'adresse réseau, le bouton « Choisir une photo » ouvre quand même l'appareil photo. Pour la démo, déploie sur Vercel (HTTPS automatique).
+- **Sur téléphone :** même Wi-Fi que l'ordinateur, puis l'adresse « Network » affichée par Vite.
+- **Caméra :** elle exige HTTPS ou `localhost`. Pour un HTTPS rapide, rediriger le port 5173 depuis l'onglet **PORTS** de VS Code en visibilité *Public*. Sur téléphone, le bouton de choix de photo ouvre de toute façon l'appareil photo.
+- **Démo :** le bouton « Essayer avec la démo Maison Ben Salah » crée un compteur de 3 membres avec un mois de relevés (168 kWh) et 3 kWc de panneaux solaires.
+- **Espace STEG :** lien « Espace STEG (démo) » sur l'écran d'accueil, ou `#/steg`.
 
-Sur l'écran de bienvenue, **« Essayer avec la démo Maison Ben Salah »** crée un compteur avec 3 membres et un mois de relevés (168 kWh consommés).
+## Modes de données et Supabase
 
-Tests du moteur de calcul : `npm test`.
+| Mode | Condition | Fonctionnement |
+|---|---|---|
+| **Local** | Par défaut, sans configuration | Tout fonctionne sur un seul appareil (localStorage et IndexedDB). Kizuna reste limité à cet appareil. |
+| **Cloud** | Fichier `.env.local` rempli | En plus : Kizuna en temps réel entre téléphones, photos stockées sur Supabase, données transmises à l'espace STEG. |
 
-## Deux modes de données
+### Activer Supabase (environ 10 minutes)
 
-| Mode | Quand | Ce qui marche |
-| --- | --- | --- |
-| **Local** | Par défaut, aucune configuration | Tout, sur un seul téléphone (localStorage + IndexedDB). Le partage Kizuna reste limité à ce téléphone. |
-| **Cloud** | `.env.local` rempli | Tout + le **partage Kizuna en temps réel** entre téléphones, photos sur Supabase et contribution photovoltaïque agrégée. |
+1. Créer un projet gratuit sur [supabase.com](https://supabase.com).
+2. Dans **SQL Editor**, exécuter `supabase/schema.sql` (tables, bucket de photos, temps réel, tables STEG `partages_steg` et `avis_steg`, vue `steg_foyers`).
+3. Dans **Project Settings → API**, copier l'URL du projet et la clé `anon public`.
+4. Copier `.env.example` en `.env.local` et remplir :
+   ```
+   VITE_SUPABASE_URL=...
+   VITE_SUPABASE_ANON_KEY=...
+   ```
+5. Relancer `npm run dev`. Les comptes créés en mode local ne sont pas transférés.
 
-### Activer Supabase (mode cloud, ~10 minutes)
+> ⚠️ Pour le hackathon, les règles d'accès sont volontairement simplifiées : toute personne qui connaît l'identifiant d'un compteur peut le lire et y écrire.
 
-1. Crée un projet gratuit sur supabase.com.
-2. **SQL Editor → New query** : colle `supabase/schema.sql`, puis **Run**. Le script crée les tables, le bucket de photos et active le temps réel.
-3. **Project Settings → API** : copie l'URL du projet et la clé `anon public`.
-4. Copie `.env.example` en `.env.local` et remplis les deux valeurs.
-5. Relance `npm run dev`. Les comptes créés en mode local ne sont pas transférés.
+## Assistant IA Aaddad
 
-Les règles d'accès sont simplifiées pour le hackathon : quiconque a l'identifiant d'un compteur peut le lire et y écrire.
+L'assistant passe par une **Supabase Edge Function** qui appelle OpenAI côté serveur. Les relevés du compteur ne sont pas envoyés à OpenAI et les conversations ne sont pas enregistrées. Limite : 20 messages par jour et par adresse réseau.
 
-### Activer l'assistant IA Aaddad
+1. Exécuter `supabase/assistant.sql` dans le SQL Editor.
+2. Installer la Supabase CLI, puis :
+   ```bash
+   supabase link --project-ref <project-ref>
+   supabase secrets set "OPENAI_API_KEY=ta-cle"
+   supabase functions deploy aaddad-assistant
+   ```
+3. Remplir `.env.local` (URL et clé `anon`), puis relancer l'application.
 
-L'assistant utilise OpenAI via une Supabase Edge Function. Les messages sont envoyés à OpenAI pour générer les réponses ; les relevés du compteur ne sont pas transmis et les conversations ne sont pas enregistrées. Une limite de 20 messages par jour et par adresse réseau est appliquée côté serveur ; seule une empreinte temporaire de l'adresse est conservée.
+> 🔒 La clé OpenAI ne doit **jamais** se trouver dans `.env.local`, dans une variable `VITE_*` ni dans le code client.
 
-1. Dans Supabase **SQL Editor**, exécute `supabase/assistant.sql`.
-2. Installe la [Supabase CLI](https://supabase.com/docs/guides/cli), lie le projet avec `supabase link --project-ref <project-ref>`, puis ajoute ta clé OpenAI comme secret serveur : `supabase secrets set "OPENAI_API_KEY=ta-cle"` (remplace `ta-cle` par ta vraie clé).
-3. Depuis le dossier du projet, déploie la fonction : `supabase functions deploy aaddad-assistant`.
-4. Configure `.env.local` avec l'URL Supabase et la clé `anon` comme pour le mode cloud, puis relance l'application.
+## Déploiement
 
-Ne mets jamais la clé OpenAI dans `.env.local`, dans une variable `VITE_*` ou dans le code client. L'entrée vocale dépend de la prise en charge du navigateur ; la lecture des réponses utilise la synthèse vocale intégrée au navigateur.
+L'application est en ligne sur Vercel : **https://hackaton-kizuna.vercel.app** (mode local : les données restent sur l'appareil de chaque visiteur).
 
-## Déployer (lien public pour le jury)
+Chaque `git push` sur `main` redéploie automatiquement. Pour refaire un déploiement depuis zéro :
 
 ```bash
 npm run build
 ```
 
-Puis sur vercel.com : **Add New → Project**, importe le dépôt, et ajoute les deux variables `VITE_SUPABASE_*` dans **Settings → Environment Variables**.
+Puis sur [vercel.com](https://vercel.com) : **Add New → Project**, importer le dépôt (Vite est détecté automatiquement). Pour le mode cloud, ajouter `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` dans **Settings → Environment Variables**. Vercel fournit le HTTPS nécessaire à la caméra.
 
-## Ce qui est fait
+## Tests
 
-| Fonction (cahier des charges) | Fichier |
-| --- | --- |
-| F1 Création / rejoindre / démo | `src/pages/Bienvenue.jsx`, `src/lib/db.js` |
-| F2 Photo + OCR + vérification | `src/pages/Releve.jsx`, `src/lib/ocr.js` |
-| F3 Jauge Pont Kizuna | `src/components/PontGauge.jsx`, `src/pages/Accueil.jsx` |
-| F4 Projection, alerte, surcoût | `src/lib/calcul.js` (testé) |
-| F5 Simulateur d'appareils | `src/pages/Simulateur.jsx` |
-| F6 Kizuna (partage, temps réel, messages) | `src/pages/Kizuna.jsx`, `src/lib/db.js` |
-| F7 Kakeibo | `src/pages/Kakeibo.jsx` |
-| F8 PDF de réclamation, preuves (EXIF, SHA-256, date serveur) | `src/pages/Reclamation.jsx`, `src/lib/pdf.js`, `src/lib/preuve.js` |
-| F9 Météo du réseau (simulée, 17 h–23 h) | `src/pages/Accueil.jsx` |
-| PWA installable | `vite.config.js` |
-| **Aaddad parle** (lecture vocale FR / arabe) | `src/lib/voix.js`, bouton haut-parleur de l'Accueil |
-| **Courbe du mois** (relevés + projection + seuil) | `src/components/Courbe.jsx` |
-| **Alerte canicule** (≥ 35 °C dans les 3 jours, Open-Meteo) | `src/lib/meteo.js` |
-| **Partage WhatsApp** (alerte famille, invitation Kizuna) | `src/pages/Accueil.jsx`, `src/pages/Kizuna.jsx` |
-| **Arabe / derja** sur l'écran d'accueil | `src/lib/i18n.js` (ajouter une clé dans `fr` et `ar` pour traduire un nouveau texte) |
-| **Grands textes** (réglage dans Kizuna) | `src/pages/Kizuna.jsx`, `html.grand` dans `app.css` |
-| **Rappel de relevé** (plus de 7 jours) | `src/pages/Accueil.jsx` |
-| **Version web** (barre latérale sur ordinateur) | `src/styles/app.css`, section « VERSION WEB » |
+```bash
+npm test
+```
 
-## À faire par l'équipe
+37 tests (Node.js `node:test`) :
 
-- [ ] **Vérifier la grille tarifaire** dans `src/lib/tarifs.json` sur une vraie facture STEG. Le modèle actuel reproduit l'exemple publié par Webdo en 2022 (200 kWh ≈ 49,2 D ; 201 kWh ≈ 77,6 D), avec un prix moyen par régime.
-- [ ] Vérifier les puissances des appareils du simulateur (même fichier).
-- [ ] Tester l'OCR sur des photos de vrais compteurs de l'équipe ; ajuster le cadre dans `src/lib/ocr.js` et `.camera .frame` (`src/styles/app.css`) si besoin.
-- [ ] Traduire les autres écrans en arabe (l'Accueil est fait : suivre le même modèle avec `useT()` et `dir={dir}`).
-- [ ] Notifications push (Could) et QR code Kizuna (Could).
+- **Calculs** (`calcul.test.js`) : coût mensuel, seuil, projection, vérification des relevés.
+- **Météo** (`meteo.test.js`) : alerte canicule et kWh supplémentaires.
+- **Photovoltaïque** (`pv.test.js`).
+- **Tableau STEG** (`steg.test.js`) : agrégation et règles de confidentialité.
+- **Réseau et délestage** (`reseau.test.js`) : on limite avant de couper, les foyers prioritaires ne sont jamais touchés, une action est annoncée avant et dure 60 minutes au plus, gains solaires.
 
-## Répartition (cahier des charges)
+## Structure du projet
 
-- **M1 — Front** : `src/pages/*`, `src/components/*`, `src/styles/*`.
-- **M2 — Back, calculs, Kizuna** : `src/lib/calcul.js`, `src/lib/db.js`, `src/lib/store.jsx`, `supabase/schema.sql`.
-- **M3 — OCR, preuves, PDF, pitch** : `src/lib/ocr.js`, `src/lib/preuve.js`, `src/lib/pdf.js`.
+```
+hackaton_Kizuna/
+├── public/assets/        # Logo, Aaddad (3 humeurs), pont Kizuna, motifs seigaiha et zellige
+├── src/
+│   ├── pages/            # Bienvenue, Accueil, Releve, Simulateur, Kakeibo, Kizuna, Reclamation, Steg
+│   ├── components/       # PontGauge, Graphique, Canicule, Photovoltaique, AvisSteg,
+│   │                     # ConditionsSteg, PartageSteg, CarteSteg, StegCharts, Chrome, Icon
+│   ├── lib/              # calcul, reseau, steg, pv, meteo, ocr, preuve, pdf, voix, db, store
+│   │   └── tarifs.json   # Grille tarifaire et puissance des appareils
+│   ├── i18n/             # fr.js, en.js, ar.js
+│   └── styles/           # tokens.css (charte), app.css
+├── supabase/             # schema.sql, assistant.sql, fonction Edge aaddad-assistant
+├── .env.example
+├── index.html
+├── package.json
+└── vite.config.js        # PWA (manifest, service worker)
+```
 
-## Charte
+## Confidentialité et cadre légal
 
-Couleurs et typographies : `src/styles/tokens.css`, généré depuis les jetons de la charte Mieru. Images : `public/assets/` (logo, Aaddad en trois humeurs, illustration du pont Kizuna, motifs seigaiha et zellige).
+- **Partage avec la STEG :** condition d'utilisation, acceptée une fois par compteur sur l'écran « Avant de commencer ». Le foyer voit à tout moment ce que la STEG voit (Kizuna → « Ce que la STEG voit »).
+- **Jamais transmis :** prénoms des membres, photos, messages Kizuna, kakeibo.
+- **Foyers prioritaires :** un foyer qui déclare un équipement médical n'est jamais limité ni coupé.
+- **Délestage :** toujours annoncé 15 minutes avant, 60 minutes au plus, limitation à 2 kVA avant toute coupure.
+- **Base légale visée :** convention entre le foyer et la STEG (loi organique n° 2004-63, art. 29), avec déclaration préalable à l'INPDP avant tout déploiement réel.
+- **Données de démo :** les 1 226 maisons de la carte, leurs positions et leurs charges sont **simulées**. Les vrais foyers Mieru sont marqués « Foyer Mieru ».
+
+## Limites connues et suite
+
+- Vérifier la grille tarifaire (`src/lib/tarifs.json`) sur une vraie facture STEG.
+- Tester l'OCR sur de vraies photos de compteurs et ajuster le cadre (`src/lib/ocr.js`, `.camera .frame` dans `app.css`).
+- La partie cloud de l'espace STEG n'a pas encore été testée sur un vrai projet Supabase.
+- Une limitation ou une coupure **à distance** nécessite des compteurs communicants. Sans eux, Mieru alerte et la STEG agit sur le terrain.
+- À venir : notifications push, QR code d'invitation Kizuna, pilote dans un secteur avec la STEG.
+- `src/lib/i18n.js` et `src/components/Courbe.jsx` sont obsolètes et peuvent être supprimés.
+
+## Équipe
+
+Projet réalisé pendant le hackathon Kizuna (Tunisie × Japon).
+
+| Rôle | Membre | Périmètre |
+|---|---|---|
+| M1 · Front | [Nom] | `src/pages/*`, `src/components/*`, `src/styles/*` |
+| M2 · Back, calculs, Kizuna | [Nom] | `src/lib/calcul.js`, `src/lib/db.js`, `src/lib/store.jsx`, `supabase/` |
+| M3 · OCR, preuves, PDF, pitch | [Nom] | `src/lib/ocr.js`, `src/lib/preuve.js`, `src/lib/pdf.js` |
 
 ---
 
-## Version finale : langues, graphique, canicule, espace STEG
+<div align="center">
 
-| Fonction | Où | Notes |
-|---|---|---|
-| **Choix de la langue FR / EN / AR** | 1er écran, Bienvenue, Kizuna, barre latérale | `src/i18n/` (fr.js, en.js, ar.js — mêmes clés). L'arabe passe toute l'app en droite-à-gauche. |
-| **Graphique du mois** | Accueil | `components/Graphique.jsx` : index relevés, projection, seuil 200 kWh. |
-| **Alerte canicule (3 jours)** | Accueil | `lib/meteo.js` (Open-Meteo, sans clé) + `components/Canicule.jsx`. Ville choisie dans Kizuna. |
-| **Partage avec la STEG** | Kizuna → « Partager avec la STEG » | `components/PartageSteg.jsx`. Partage anonyme par défaut ou avec le nom du foyer ; partage révocable. |
-| **Tableau de bord STEG** | `#/steg` (lien « Espace STEG (démo) » sur l'écran d'accueil) | `pages/Steg.jsx`, `components/StegCharts.jsx`, logique testée dans `lib/steg.js`. |
-| **Photovoltaïque** | Carte sur l'accueil | `components/Photovoltaique.jsx` estime la production avec PVGIS. La puissance et les relevés restent sur l'appareil ; la contribution est facultative et le tableau n'expose que les agrégats par ville à partir de cinq foyers. |
+**Mieru 見える : voir, pour ne plus couper.**
 
-### Règles de confidentialité du tableau de bord STEG (appliquées dans `lib/steg.js`, testées)
-- Les données photovoltaïques ne sont transmises qu’après activation explicite de la contribution agrégée et du partage STEG.
-- Jamais transmis au tableau : prénoms, code Kizuna, photos, messages, kakeibo, adresse. Le nom du compteur n’est envoyé que pour le partage nominatif.
-- Zones de moins de 5 foyers masquées (k-anonymat).
-- Les contributions photovoltaïques individuelles sont protégées par RLS ; l'export agrégé est lui aussi masqué tant que moins de cinq mesures existent.
-- La production PV est une estimation mensuelle PVGIS proratisée, pas une mesure d'onduleur. L'injection réseau n'est affichée que si l'utilisateur la saisit comme mesurée.
-- La liste « foyers en forte hausse » (+20 %) ne contient que les foyers « accepter un conseil », sous un code anonyme `MIE-XXXX`.
-- Données simulées (480 foyers) clairement signalées, désactivables par une case.
-- Avant un vrai déploiement : déclaration préalable à l'INPDP (loi organique n° 2004-63), accès au tableau de bord réservé à un compte STEG authentifié (voir fin de `supabase/schema.sql`).
+ありがとう · شكرا · Merci
 
-En mode Supabase, exécuter à nouveau `supabase/schema.sql` pour ajouter les tables et vues de partage et photovoltaïque. Le tableau `/steg` reste une démo non authentifiée : les agrégats sont anonymisés, mais l'accès n'est pas réservé techniquement au personnel STEG. La soumission anonyme ne garantit pas l'authenticité des mesures ; un déploiement réel doit ajouter l'authentification et l'autorisation des foyers.
-
-Tests : `npm test` (calculs, météo, STEG et photovoltaïque).
-
-> Fichiers anciens non utilisés : `src/lib/i18n.js` et `src/components/Courbe.jsx` (remplacés par `src/i18n/` et `Graphique.jsx`). On peut les supprimer.
-
----
-
-## Version « STEG connectée » : partage obligatoire, carte du réseau, délestage ciblé, solaire
-
-| Fonction | Où | Fichiers |
-|---|---|---|
-| **Partage obligatoire avec la STEG** | Écran « Avant de commencer » (une fois par compteur) ; Kizuna → « Ce que la STEG voit » | `components/ConditionsSteg.jsx`, `components/PartageSteg.jsx` |
-| **Besoin vital (équipement médical)** | Même écran : le logement n'est jamais limité ni coupé | `partages_steg.prioritaire` |
-| **Carte zoomable** | `#/steg` → onglet « Carte et délestage » : Tunisie → gouvernorats → secteurs → maisons (molette, pincement, + / −) | `components/CarteSteg.jsx` (SVG, hors connexion) |
-| **Délestage ciblé** | Clic sur un secteur → « Préparer le plan » : limiter à 2 kVA d'abord, couper seulement si besoin, prioritaires protégés, comparaison avec la coupure de tout le secteur | `lib/reseau.js` → `planDelestage` |
-| **Action sur une maison** | Clic sur une maison : alerter, limiter, couper (confirmation), rétablir | `pages/Steg.jsx` |
-| **Alertes et annonces côté foyer** | Bandeau STEG en haut de l'accueil (alerte, limitation/coupure annoncée 15 min avant, en cours, rétablie), lisible à voix haute | `components/AvisSteg.jsx`, table `avis_steg` |
-| **Solaire clair** | Accueil → « Mon solaire » : produit / consommé, d'où vient l'électricité, où va la production, économies du foyer et de la STEG | `components/Photovoltaique.jsx` |
-| **Gain STEG par maison solaire** | `#/steg` → onglet « Solaire » | `lib/reseau.js` → `gainsSolaire`, `syntheseSolaire` |
-
-**Calcul du gain solaire** (facturation nette) : gain foyer = facture sans panneaux − facture avec panneaux ; gain STEG = production × 0,472 D/kWh (coût moyen, audition parlementaire 2025) − gain foyer.
-
-**Données de démo** : 1 226 maisons simulées dans 31 secteurs (noms de quartiers réels, positions approximatives), plus les vrais foyers Mieru (marqués « Foyer Mieru »). Bouton « Pointe canicule 15 h » pour simuler l'été.
-
-**Supabase** : exécuter à nouveau `supabase/schema.sql` (colonnes `prioritaire`, `pv_kwc`, `pv_injection_kwh`, vue `steg_foyers`, table `avis_steg`). La partie cloud de cette version n'a pas été testée contre un vrai projet Supabase.
-
-**Avant un vrai déploiement** : convention foyer–STEG (loi organique 2004-63, art. 29) et déclaration à l'INPDP ; tableau de bord réservé à un compte STEG authentifié ; une vraie limitation ou coupure à distance demande des compteurs communicants.
-
-Tests : `npm test` (37 tests, dont 11 pour le réseau et le délestage).
+</div>
