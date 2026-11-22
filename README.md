@@ -232,9 +232,9 @@ Projet réalisé pendant le hackathon Kizuna (Tunisie × Japon).
 
 | Rôle | Membre | Périmètre |
 |---|---|---|
-| M1 · Front | [Nom] | `src/pages/*`, `src/components/*`, `src/styles/*` |
-| M2 · Back, calculs, Kizuna | [Nom] | `src/lib/calcul.js`, `src/lib/db.js`, `src/lib/store.jsx`, `supabase/` |
-| M3 · OCR, preuves, PDF, pitch | [Nom] | `src/lib/ocr.js`, `src/lib/preuve.js`, `src/lib/pdf.js` |
+| M1 · Front | [Yesmine Dhouib] | `src/pages/*`, `src/components/*`, `src/styles/*` |
+| M2 · Back, calculs, Kizuna | [ines.sefi] | `src/lib/calcul.js`, `src/lib/db.js`, `src/lib/store.jsx`, `supabase/` |
+| M3 · OCR, preuves, PDF, pitch | [tasnim elmehrabi] | `src/lib/ocr.js`, `src/lib/preuve.js`, `src/lib/pdf.js` |
 
 ---
 
